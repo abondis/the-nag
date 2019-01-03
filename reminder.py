@@ -1,5 +1,6 @@
 import pymsgbox
 import time
+import datetime
 
 SLEEP = 600
 
@@ -9,7 +10,8 @@ def popup(f):
         pymsgbox.prompt('what are you doing now ?')
         or "NO ANSWER"
     ) + "\n"
-    f.write(answer)
+    date = str(datetime.datetime.now()) + " : "
+    f.write(date + answer)
 
 
 with open('log', 'a', buffering=1) as f:
