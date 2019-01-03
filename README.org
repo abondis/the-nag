@@ -1,0 +1,2 @@
+* Focus Reminder
+  Opens a pop-up every =SLEEP= seconds asking for current task and logs it
