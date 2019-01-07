@@ -1,2 +1,3 @@
 * Focus Reminder
-  Opens a pop-up every =SLEEP= seconds asking for current task and logs it
+  Opens a pop-up every =SLEEP= seconds asking for current task and logs it.
+  AKA: THE NAG !
