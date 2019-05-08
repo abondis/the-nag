@@ -1,0 +1,9 @@
+settings = {
+    # folder the log files will go in
+    'logs_path': 'logs',
+    # Nb of seconds interval between each nag
+    'seconds_per_nag': 10*60,
+    # Date format
+    'date_format': '%Y-%m-%d',
+    'time_format': '%H:%M:%S',
+}

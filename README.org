@@ -2,10 +2,13 @@
   Opens a pop-up every =SLEEP= seconds asking for current task and logs it.
   AKA: THE NAG !
 
-** Setup
+** Requirements and install
+   - python3
+   - virtualenv
+   - =pip install requirements.txt=
 
-  #+BEGIN_SRC bash
-    virtualenv -p python3 .venv
-    .venv/bin/activate
-    pip install -r requirements.txt
-  #+END_SRC
+** Configuration
+   - copy and modify =config.py.template= to =config.py=
+
+** Usage
+   - call =python reminder.py=

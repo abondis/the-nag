@@ -103,6 +103,10 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# vim
+.*.swp
+
 # app specific
 logs
 log
+config.py
