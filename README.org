@@ -4,8 +4,12 @@
 
 ** Requirements and install
    - python3
-   - virtualenv
-   - =pip install requirements.txt=
+   - Setup: 
+     #+BEGIN_SRC bash
+       virtualenv -p python3 .venv
+       .venv/bin/activate
+       pip install -r requirements.txt
+     #+END_SRC
 
 ** Configuration
    - copy and modify =config.py.template= to =config.py=
