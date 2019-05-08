@@ -163,4 +163,4 @@ if __name__ == '__main__':
     # TODO: add reporting function
     logfile = "global"
     data = load_log(logfile) or {}
-    loop_popup(data, logfile, sleep=1, stop=2)
+    loop_popup(data, logfile)
