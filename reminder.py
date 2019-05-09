@@ -3,6 +3,7 @@ import pymsgbox
 import time
 from datetime import datetime, date
 import yaml
+import re
 try:
     from yaml import CLoader as YamlLoader, CDumper as YamlDumper
 except ImportError:
@@ -16,6 +17,14 @@ yaml.add_representer(
     data: dumper.represent_mapping(
         'tag:yaml.org,2002:map',
         data.items()
+    )
+)
+yaml.add_representer(
+    set,
+    lambda dumper,
+    data: dumper.represent_mapping(
+        'tag:yaml.org,2002:map',
+        list(data)
     )
 )
 
@@ -39,8 +48,13 @@ logs_path = settings.get('logs_path', 'logs')
 SLEEP = settings.get('seconds_per_nag', 500)
 date_format = settings.get('date_format', '%Y-%m-%d')
 time_format = settings.get('time_format', '%H:%M:%S')
+tags_format = settings.get('tags_format', '#')
 datetime_format = f"{date_format} {time_format}"
 
+
+def parse_tags(content):
+    tags =  re.findall(fr'{tags_format}\w+', content)
+    return tags
 
 def get_time():
     return datetime.now().time().replace(
@@ -59,16 +73,25 @@ def to_str(src_date, date_format=time_format):
     return datetime.strftime(src_date, date_format)
 
 
-def prep_day_struct(data, current_date=date.today()):
-    str_date = to_str(current_date, date_format)
-    if not data.get(str_date):
-        data[str_date] = {'logs': OrderedDict()}
+def prep_data_struct(data, key=date.today()):
+    if key == 'tags':
+        if key not in data:
+            data[key] = set()
+        else:
+            data[key] = set(data[key])
+    else:
+        str_date = to_str(key, date_format)
+        if not data.get(str_date):
+            data[str_date] = {'logs': OrderedDict()}
     return data
 
 
 def log_entry(data, entry, current_date=date.today()):
     time_in = entry.get('time_in')
-    prep_day_struct(data)
+    prep_data_struct(data)
+    # TODO: use a counter
+    # TODO: track common keywords
+    data['tags'].update(set(entry.get('tags', set())))
     data[
         to_str(current_date, date_format)
     ]['logs'][time_in] = entry
@@ -79,7 +102,7 @@ def popup(last_entry=None):
     answer = (
         pymsgbox.prompt('what are you doing now ?')
         or "NO ANSWER"
-    ) + "\n"
+    ).strip()
     new_time_in = to_str(get_time())
     if last_entry and not last_entry.get('time_out'):
         last_entry['delta'] = (
@@ -89,7 +112,8 @@ def popup(last_entry=None):
         last_entry['time_out'] = new_time_in
     return {
         'time_in': new_time_in,
-        'content': answer.strip()
+        'tags': parse_tags(answer),
+        'content': answer,
     }
 
 
@@ -161,6 +185,8 @@ def loop_popup(
 if __name__ == '__main__':
     # TODO: create one file per day
     # TODO: add reporting function
+    # TODO: catch exit to add date as final timeout
     logfile = "global"
     data = load_log(logfile) or {}
+    prep_data_struct(data, 'tags')
     loop_popup(data, logfile)
