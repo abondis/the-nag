@@ -22,8 +22,8 @@ yaml.add_representer(
 yaml.add_representer(
     set,
     lambda dumper,
-    data: dumper.represent_mapping(
-        'tag:yaml.org,2002:map',
+    data: dumper.represent_sequence(
+        'tag:yaml.org,2002:seq',
         list(data)
     )
 )
@@ -50,11 +50,13 @@ date_format = settings.get('date_format', '%Y-%m-%d')
 time_format = settings.get('time_format', '%H:%M:%S')
 tags_format = settings.get('tags_format', '#')
 datetime_format = f"{date_format} {time_format}"
+tags_regex = fr'{tags_format}[^\s#]*'
 
 
 def parse_tags(content):
-    tags =  re.findall(fr'{tags_format}\w+', content)
+    tags = re.findall(tags_regex, content)
     return tags
+
 
 def get_time():
     return datetime.now().time().replace(
@@ -186,6 +188,7 @@ if __name__ == '__main__':
     # TODO: create one file per day
     # TODO: add reporting function
     # TODO: catch exit to add date as final timeout
+    # TODO: accept options (ie: nb sec wait)
     logfile = "global"
     data = load_log(logfile) or {}
     prep_data_struct(data, 'tags')
