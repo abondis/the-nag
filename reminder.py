@@ -9,10 +9,18 @@ try:
 except ImportError:
     from yaml import Loader as YamlLoader, Dumper as YamlDumper
 import os
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 # https://stackoverflow.com/a/50181505/5178528
 yaml.add_representer(
     OrderedDict,
+    lambda dumper,
+    data: dumper.represent_mapping(
+        'tag:yaml.org,2002:map',
+        data.items()
+    )
+)
+yaml.add_representer(
+    defaultdict,
     lambda dumper,
     data: dumper.represent_mapping(
         'tag:yaml.org,2002:map',
@@ -49,13 +57,20 @@ SLEEP = settings.get('seconds_per_nag', 500)
 date_format = settings.get('date_format', '%Y-%m-%d')
 time_format = settings.get('time_format', '%H:%M:%S')
 tags_format = settings.get('tags_format', '#')
+ctx_format = settings.get('ctx_format', '@')
 datetime_format = f"{date_format} {time_format}"
 tags_regex = fr'{tags_format}[^\s#]*'
+ctx_regex = fr'{ctx_format}[^\s#]*'
 
 
 def parse_tags(content):
     tags = re.findall(tags_regex, content)
     return tags
+
+
+def parse_ctx(content):
+    ctx = re.findall(ctx_regex, content)
+    return ctx
 
 
 def get_time():
@@ -76,15 +91,22 @@ def to_str(src_date, date_format=time_format):
 
 
 def prep_data_struct(data, key=date.today()):
-    if key == 'tags':
+    if key in ['tags', 'ctx']:
         if key not in data:
             data[key] = set()
         else:
             data[key] = set(data[key])
     else:
+        # FIXME: test if it is a date
         str_date = to_str(key, date_format)
         if not data.get(str_date):
-            data[str_date] = {'logs': OrderedDict()}
+            data[str_date] = {}
+        struct = data[str_date]
+        # FIXME: needs cleanup
+        struct['logs'] = OrderedDict(struct.get('logs', ()))
+        struct['tags'] = set(struct.get('tags', []))
+        struct['ctx'] = set(struct.get('ctx', []))
+        struct['reports'] = defaultdict(float, struct.get('reports', {}))
     return data
 
 
@@ -94,13 +116,23 @@ def log_entry(data, entry, current_date=date.today()):
     # TODO: use a counter
     # TODO: track common keywords
     tags = set(entry.get('tags', []))
+    ctx = set(entry.get('ctx', []))
+    str_date = to_str(current_date, date_format)
     entry['tags'] = tags
+    entry['ctx'] = ctx
     data['tags'].update(
         tags
     )
-    data[
-        to_str(current_date, date_format)
-    ]['logs'][time_in] = entry
+    data[str_date]['tags'].update(tags)
+    data['ctx'].update(
+        ctx
+    )
+    data[str_date]['ctx'].update(ctx)
+    data[str_date]['logs'][time_in] = entry
+    for _ctx in ctx:
+        data[str_date]['reports'][_ctx] += entry.get('delta', 0)
+    for _tag in tags:
+        data[str_date]['reports'][_tag] += entry.get('delta', 0)
     return data
 
 
@@ -119,6 +151,7 @@ def popup(last_entry=None):
     return {
         'time_in': new_time_in,
         'tags': parse_tags(answer),
+        'ctx': parse_ctx(answer),
         'content': answer,
     }
 
@@ -188,6 +221,10 @@ def loop_popup(
         time.sleep(sleep)
 
 
+def report_date(data, report_date=date.today()):
+    str_date = to_str(report_date, date_format)
+
+
 if __name__ == '__main__':
     # TODO: create one file per day
     # TODO: add reporting function
@@ -196,6 +233,7 @@ if __name__ == '__main__':
     logfile = "global"
     data = load_log(logfile) or {}
     prep_data_struct(data, 'tags')
-    loop_popup(data, logfile)
+    prep_data_struct(data, 'ctx')
+    # loop_popup(data, logfile)
     # debug
-    # loop_popup(data, logfile, 1, 3)
+    loop_popup(data, logfile, 1, 3)
