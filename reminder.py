@@ -93,7 +93,11 @@ def log_entry(data, entry, current_date=date.today()):
     prep_data_struct(data)
     # TODO: use a counter
     # TODO: track common keywords
-    data['tags'].update(set(entry.get('tags', set())))
+    tags = set(entry.get('tags', []))
+    entry['tags'] = tags
+    data['tags'].update(
+        tags
+    )
     data[
         to_str(current_date, date_format)
     ]['logs'][time_in] = entry
@@ -193,3 +197,5 @@ if __name__ == '__main__':
     data = load_log(logfile) or {}
     prep_data_struct(data, 'tags')
     loop_popup(data, logfile)
+    # debug
+    # loop_popup(data, logfile, 1, 3)
