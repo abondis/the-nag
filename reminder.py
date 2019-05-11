@@ -234,6 +234,6 @@ if __name__ == '__main__':
     data = load_log(logfile) or {}
     prep_data_struct(data, 'tags')
     prep_data_struct(data, 'ctx')
-    # loop_popup(data, logfile)
+    loop_popup(data, logfile)
     # debug
-    loop_popup(data, logfile, 1, 3)
+    # loop_popup(data, logfile, 1, 3)
