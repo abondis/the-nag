@@ -110,8 +110,12 @@ def prep_data_struct(data, key=date.today()):
     return data
 
 
-def log_entry(data, entry, current_date=date.today()):
-    time_in = entry.get('time_in')
+def log_entry(
+        data,
+        entry,
+        current_date=date.today()
+):
+    # time_in = entry.get('time_in')
     prep_data_struct(data)
     # TODO: use a counter
     # TODO: track common keywords
@@ -123,12 +127,7 @@ def log_entry(data, entry, current_date=date.today()):
     data['tags'].update(
         tags
     )
-    data[str_date]['tags'].update(tags)
-    data['ctx'].update(
-        ctx
-    )
-    data[str_date]['ctx'].update(ctx)
-    data[str_date]['logs'][time_in] = entry
+    data['ctx'].update(ctx)
     for _ctx in ctx:
         data[str_date]['reports'][_ctx] += entry.get('delta', 0)
     for _tag in tags:
@@ -148,10 +147,12 @@ def popup(last_entry=None):
             - from_str(last_entry['time_in'])
         ).total_seconds() / 60.0
         last_entry['time_out'] = new_time_in
+    tags = parse_tags(answer)
+    ctx = parse_ctx(answer)
     return {
         'time_in': new_time_in,
-        'tags': parse_tags(answer),
-        'ctx': parse_ctx(answer),
+        'tags': tags,
+        'ctx': ctx,
         'content': answer,
     }
 
@@ -209,6 +210,11 @@ def loop_popup(
         if stop > 0:
             stop -= 1
         entry = popup(prev_entry)
+        if prev_entry:
+            log_entry(
+                data,
+                prev_entry,
+            )
         prev_entry = entry
         log_entry(
             data,
