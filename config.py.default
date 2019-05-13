@@ -6,4 +6,7 @@ settings = {
     # Date format
     'date_format': '%Y-%m-%d',
     'time_format': '%H:%M:%S',
+    # Parser format
+    'tags_format': '#',
+    'ctx_format': '@',
 }
