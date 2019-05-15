@@ -115,7 +115,7 @@ def log_entry(
         entry,
         current_date=date.today()
 ):
-    # time_in = entry.get('time_in')
+    time_in = entry.get('time_in')
     prep_data_struct(data)
     # TODO: use a counter
     # TODO: track common keywords
@@ -132,6 +132,7 @@ def log_entry(
         data[str_date]['reports'][_ctx] += entry.get('delta', 0)
     for _tag in tags:
         data[str_date]['reports'][_tag] += entry.get('delta', 0)
+    data[str_date]['logs'][time_in] = entry
     return data
 
 
