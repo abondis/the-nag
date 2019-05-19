@@ -15,4 +15,8 @@
    - copy and modify =config.py.template= to =config.py=
 
 ** Usage
+*** Tracking
    - call =python reminder.py=
+*** Reporting
+   - call =report.sh <search string> [<reports path>]=
+

@@ -237,6 +237,8 @@ if __name__ == '__main__':
     # TODO: add reporting function
     # TODO: catch exit to add date as final timeout
     # TODO: accept options (ie: nb sec wait)
+    # TODO: add autocomplete of tags and contexts
+    # TODO: add autocomplete of tags based on other tags/contexts
     logfile = "global"
     data = load_log(logfile) or {}
     prep_data_struct(data, 'tags')
