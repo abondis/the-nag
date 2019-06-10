@@ -2,6 +2,7 @@
 import pymsgbox
 import time
 from datetime import datetime, date
+from itertools import product
 import yaml
 import re
 try:
@@ -122,16 +123,32 @@ def log_entry(
     tags = set(entry.get('tags', []))
     ctx = set(entry.get('ctx', []))
     str_date = to_str(current_date, date_format)
-    entry['tags'] = tags
-    entry['ctx'] = ctx
+    tags_set = set(tags)
+    entry['tags'] = tags_set
+    stripped = set([''.join(x.split('-', 1)[:1]) for x in tags_set])
+    entry['ctx'] = set(ctx)
     data['tags'].update(
         tags
     )
     data['ctx'].update(ctx)
+    reports = data[str_date]['reports']
+    delta = entry.get('delta', 0)
     for _ctx in ctx:
-        data[str_date]['reports'][_ctx] += entry.get('delta', 0)
+        reports[_ctx] += delta
     for _tag in tags:
-        data[str_date]['reports'][_tag] += entry.get('delta', 0)
+        reports[_tag] += delta
+    # for _stripped in stripped:
+    #     reports[f"total_{_stripped}"] += delta
+    # Combine context with base keyword
+    context_report = list(
+        map(
+            lambda x: '-'.join(x),
+            product(ctx, stripped)
+        )
+    )
+    for rep in context_report:
+        reports[rep] += delta
+
     data[str_date]['logs'][time_in] = entry
     return data
 
