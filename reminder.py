@@ -5,6 +5,7 @@ from datetime import datetime, date
 from itertools import product
 import yaml
 import re
+import sys
 try:
     from yaml import CLoader as YamlLoader, CDumper as YamlDumper
 except ImportError:
@@ -224,25 +225,33 @@ def loop_popup(
         stop=-1
 ):
     prev_entry = None
+    kill = False
     while stop != 0:
         if stop > 0:
             stop -= 1
-        entry = popup(prev_entry)
-        if prev_entry:
+        try:
+            entry = popup(prev_entry)
+            if prev_entry:
+                log_entry(
+                    data,
+                    prev_entry,
+                )
+            prev_entry = entry
             log_entry(
                 data,
-                prev_entry,
+                entry,
             )
-        prev_entry = entry
-        log_entry(
-            data,
-            entry,
-        )
-        save_log(
-            data,
-            logfile
-        )
-        time.sleep(sleep)
+            save_log(
+                data,
+                logfile
+            )
+            if kill:
+                sys.exit(0)
+            if stop != 0:
+                time.sleep(sleep)
+        except KeyboardInterrupt as e:
+            kill = True
+            stop = 1
 
 
 def report_date(data, report_date=date.today()):
@@ -251,8 +260,6 @@ def report_date(data, report_date=date.today()):
 
 if __name__ == '__main__':
     # TODO: create one file per day
-    # TODO: add reporting function
-    # TODO: catch exit to add date as final timeout
     # TODO: accept options (ie: nb sec wait)
     # TODO: add autocomplete of tags and contexts
     # TODO: add autocomplete of tags based on other tags/contexts
@@ -260,6 +267,7 @@ if __name__ == '__main__':
     data = load_log(logfile) or {}
     prep_data_struct(data, 'tags')
     prep_data_struct(data, 'ctx')
+
     loop_popup(data, logfile)
     # debug
     # loop_popup(data, logfile, 1, 3)
