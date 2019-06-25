@@ -1,7 +1,7 @@
 #!/bin/env python3
 import pymsgbox
 import time
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from itertools import product
 import yaml
 import re
@@ -61,8 +61,10 @@ time_format = settings.get('time_format', '%H:%M:%S')
 tags_format = settings.get('tags_format', '#')
 ctx_format = settings.get('ctx_format', '@')
 datetime_format = f"{date_format} {time_format}"
-tags_regex = fr'{tags_format}[^\s#]*'
-ctx_regex = fr'{ctx_format}[^\s#]*'
+tags_regex = fr'{tags_format}[^\s]*'
+ctx_regex = fr'{ctx_format}[^\s]*'
+uptime_format = settings.get('uptime_format', '+')
+uptime_regex = fr'\+([0-9]*)([dhm])'
 
 
 def parse_tags(content):
@@ -73,6 +75,22 @@ def parse_tags(content):
 def parse_ctx(content):
     ctx = re.findall(ctx_regex, content)
     return ctx
+
+
+def parse_uptime(content):
+    # TODO: use something like re.sub("[^\d\.]", "", value) to cleanup
+    values = {
+        'h': ['hours', ],
+        'm': ['minutes', ],
+        'd': ['days', ],
+    }
+    uptime = re.findall(uptime_regex, content)
+    d = timedelta()
+    for delta in uptime:
+        val = values.get(delta[1])
+        val.append(float(delta[0]))
+        d += timedelta(**dict([val]))
+    return d.total_seconds() / 60.0
 
 
 def get_time():
@@ -161,7 +179,9 @@ def popup(last_entry=None):
     ).strip()
     new_time_in = to_str(get_time())
     if last_entry and not last_entry.get('time_out'):
-        last_entry['delta'] = (
+        uptime = parse_uptime(last_entry['content'])
+        last_entry['delta'] += uptime
+        last_entry['delta'] += (
             from_str(new_time_in)
             - from_str(last_entry['time_in'])
         ).total_seconds() / 60.0
@@ -169,6 +189,7 @@ def popup(last_entry=None):
     tags = parse_tags(answer)
     ctx = parse_ctx(answer)
     return {
+        'delta': 0,
         'time_in': new_time_in,
         'tags': tags,
         'ctx': ctx,

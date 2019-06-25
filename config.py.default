@@ -9,4 +9,5 @@ settings = {
     # Parser format
     'tags_format': '#',
     'ctx_format': '@',
+    'uptime_format': '+',
 }
