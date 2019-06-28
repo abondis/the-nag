@@ -13,26 +13,24 @@ except ImportError:
 import os
 from collections import OrderedDict, defaultdict
 # https://stackoverflow.com/a/50181505/5178528
-yaml.add_representer(
+# https://stackoverflow.com/a/56808359/5178528
+yaml.representer.SafeRepresenter.add_representer(
     OrderedDict,
-    lambda dumper,
-    data: dumper.represent_mapping(
+    lambda dumper, data: dumper.represent_mapping(
         'tag:yaml.org,2002:map',
         data.items()
     )
 )
-yaml.add_representer(
+yaml.representer.SafeRepresenter.add_representer(
     defaultdict,
-    lambda dumper,
-    data: dumper.represent_mapping(
+    lambda dumper, data: dumper.represent_mapping(
         'tag:yaml.org,2002:map',
         data.items()
     )
 )
-yaml.add_representer(
+yaml.representer.SafeRepresenter.add_representer(
     set,
-    lambda dumper,
-    data: dumper.represent_sequence(
+    lambda dumper, data: dumper.represent_sequence(
         'tag:yaml.org,2002:seq',
         list(data)
     )
@@ -205,9 +203,9 @@ def load_yaml(data, loader=YamlLoader):
 
 
 def dump_yaml(data, dumper=YamlDumper):
-    return yaml.dump(
+    return yaml.safe_dump(
         data,
-        Dumper=dumper
+        # Dumper=dumper
     )
 
 
