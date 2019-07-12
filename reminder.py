@@ -62,7 +62,7 @@ datetime_format = f"{date_format} {time_format}"
 tags_regex = fr'{tags_format}[^\s]*'
 ctx_regex = fr'{ctx_format}[^\s]*'
 uptime_format = settings.get('uptime_format', '+')
-uptime_regex = fr'\+([0-9]*)([dhm])'
+uptime_regex = fr'\+([0-9]+)([dhm])'
 
 
 def parse_tags(content):
